@@ -1,6 +1,5 @@
 use std::io;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use renderer::Renderer;
 use crate::renderer::TerminalRenderer;
 
 mod game;
@@ -10,8 +9,9 @@ mod controller;
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
-    let mut renderer = TerminalRenderer::new();
-    let mut game = game::Game::new(renderer.width(), renderer.height());
+    let grid_size = 24;
+    let mut renderer = TerminalRenderer::new(grid_size);
+    let mut game = game::Game::new(grid_size);
 
     let result = (|| {
         game.run(&mut renderer);

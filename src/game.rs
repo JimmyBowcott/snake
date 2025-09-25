@@ -14,21 +14,19 @@ pub struct Game {
     score: usize,
     player: Player,
     controller: InputController,
-    screen_width: i32,
-    screen_height: i32,
+    grid_size: i32,
 }
 
 const FRAME_DURATION_IN_MS: Duration = Duration::from_millis(16);
 
 impl Game {
-    pub fn new(screen_width: i32, screen_height: i32) -> Self {
+    pub fn new(grid_size: i32) -> Self {
         Game {
+            grid_size,
             running: true,
             score: 0,
-            player: Player::new(screen_width.saturating_sub(2), screen_height / 2),
+            player: Player::new(),
             controller: InputController::new(),
-            screen_width,
-            screen_height,
         }
     }
 
