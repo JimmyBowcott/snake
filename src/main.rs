@@ -9,12 +9,13 @@ mod controller;
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
-    let grid_size = 24;
+    let grid_size = 18;
     let mut renderer = TerminalRenderer::new(grid_size);
     let mut game = game::Game::new(grid_size);
 
     let result = (|| {
-        game.run(&mut renderer);
+        // TODO: Fix this error type
+        game.run(&mut renderer).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
         Ok(())
     })();
 

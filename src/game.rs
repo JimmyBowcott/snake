@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    controller::InputController,
+    controller::{InputController, Key},
     player::Player,
     renderer::Renderer,
 };
@@ -17,7 +17,7 @@ pub struct Game {
     grid_size: i32,
 }
 
-const FRAME_DURATION_IN_MS: Duration = Duration::from_millis(16);
+const FRAME_DURATION_IN_MS: Duration = Duration::from_millis(200);
 
 impl Game {
     pub fn new(grid_size: i32) -> Self {
@@ -30,7 +30,7 @@ impl Game {
         }
     }
 
-    pub fn run(&mut self, renderer: &mut impl Renderer) {
+    pub fn run(&mut self, renderer: &mut impl Renderer) -> Result<(), String> {
         self.running = true;
         loop {
             if !self.running {
@@ -40,6 +40,7 @@ impl Game {
             let frame_start = Instant::now();
 
             self.handle_input();
+            self.player.move_next_square()?;
             self.render(renderer);
 
             let elapsed = frame_start.elapsed();
@@ -47,6 +48,7 @@ impl Game {
                 sleep(FRAME_DURATION_IN_MS - elapsed);
             }
         }
+        Ok(())
     }
 
     pub fn handle_input(&mut self) {
@@ -58,6 +60,10 @@ impl Game {
         }
 
         match self.controller.direction() {
+            Key::Up => self.player.turn_up(),
+            Key::Down => self.player.turn_down(),
+            Key::Left => self.player.turn_left(),
+            Key::Right => self.player.turn_right(),
             _ => {}
         }
     }
