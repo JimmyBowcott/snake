@@ -12,17 +12,19 @@ pub trait Renderer {
     fn draw_text(&mut self, text: &str, x: i32, y: i32);
 }
 
+struct Point {
+    x: i32,
+    y: i32,
+}
+
 pub struct TerminalRenderer {
-    width: i32,
-    height: i32,
-    scale_factor: i32,
-    padding_left: i32,
-    padding_right: i32,
-    padding_top: i32,
-    padding_bottom: i32,
     screen: Vec<Vec<char>>,
-    grid_w: i32,
-    grid_h: i32,
+    width: i32,
+    grid_start: Point,
+    height: i32,
+    scale_x: i32,
+    scale_y: i32,
+    grid_size: i32,
 }
 
 impl TerminalRenderer {
@@ -31,53 +33,41 @@ impl TerminalRenderer {
         let width = term_w as i32;
         let height = term_h as i32;
 
-        let scale_factor = (width.min(height)) / grid_size;
-        let grid_w = grid_size * scale_factor;
-        let grid_h = grid_size * scale_factor;
-        let padding_left = (width - grid_w) / 2;
-        let padding_right = width - grid_w - padding_left;
-        let padding_top = (height - grid_h) / 2;
-        let padding_bottom = height - grid_h - padding_top;
+        let scale_y = (width.min(height)) / grid_size;
+        let scale_x = 2 * scale_y;
+        let grid_w = grid_size * scale_x;
+        let grid_h = grid_size * scale_y;
+        let grid_start = Point {
+            x: (width - grid_w) / 2,
+            y: (height - grid_h) / 2,
+        };
 
         let screen = vec![vec![' '; width as usize]; height as usize];
         let _ = crossterm::execute!(stdout(), Hide);
 
         Self {
+            screen,
             width,
             height,
-            scale_factor,
-            padding_left,
-            padding_right,
-            padding_top,
-            padding_bottom,
-            screen,
-            grid_w,
-            grid_h,
+            grid_start,
+            scale_x,
+            scale_y,
+            grid_size,
         }
     }
 
-    pub fn draw_padding(&mut self) {
-        for y in 0..self.padding_top {
-            for x in 0..self.width {
-                self.screen[y as usize][x as usize] = '█';
-            }
-        }
+    pub fn draw_grid(&mut self) {
+        let dark_square = '░';
+        let light_square = '▒';
 
-        for y in (self.height - self.padding_bottom)..self.height {
-            for x in 0..self.width {
-                self.screen[y as usize][x as usize] = '█';
-            }
-        }
-
-        for y in 0..self.height {
-            for x in 0..self.padding_left {
-                self.screen[y as usize][x as usize] = '█';
-            }
-        }
-
-        for y in 0..self.height {
-            for x in (self.width - self.padding_right)..self.width {
-                self.screen[y as usize][x as usize] = '█';
+        for gy in 0..self.grid_size {
+            for gx in 0..self.grid_size {
+                let ch = if (gx + gy) % 2 == 0 {
+                    dark_square
+                } else {
+                    light_square
+                };
+                self.put_char(gx, gy, ch);
             }
         }
     }
@@ -91,21 +81,28 @@ impl Drop for TerminalRenderer {
 
 impl Renderer for TerminalRenderer {
     fn clear(&mut self) {
-        for row in &mut self.screen {
-            for ch in row.iter_mut() {
-                *ch = ' ';
-            }
-        }
+        self.draw_grid();
     }
 
-    fn put_char(&mut self, x: i32, y: i32, ch: char) {
-        self.screen[y as usize][x as usize] = ch;
+    fn put_char(&mut self, gx: i32, gy: i32, ch: char) {
+        let start_x = self.grid_start.x + gx * self.scale_x;
+        let start_y = self.grid_start.y + gy * self.scale_y;
+
+        for y in 0..self.scale_y {
+            for x in 0..self.scale_x {
+                let sx = (start_x + x) as usize;
+                let sy = (start_y + y) as usize;
+
+                if sy < self.height as usize && sx < self.width as usize {
+                    self.screen[sy][sx] = ch;
+                }
+            }
+        }
     }
 
     fn draw_text(&mut self, text: &str, x: i32, y: i32) {}
 
     fn present(&mut self) {
-        self.draw_padding();
         let mut stdout = stdout();
 
         for (y, row) in self.screen.iter().enumerate() {
