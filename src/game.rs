@@ -41,6 +41,9 @@ impl Game {
 
             self.handle_input();
             self.player.move_next_square()?;
+            if self.player.out_of_bounds(self.grid_size)? {
+                break;
+            }
             self.render(renderer);
 
             let elapsed = frame_start.elapsed();

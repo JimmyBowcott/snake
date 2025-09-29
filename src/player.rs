@@ -2,11 +2,12 @@ use std::{collections::VecDeque, vec};
 
 use crate::renderer::Renderer;
 
+#[derive(PartialEq)]
 enum Direction {
     Up,
     Down,
     Left,
-    Right
+    Right,
 }
 
 pub struct Player {
@@ -42,19 +43,35 @@ impl Player {
     }
 
     pub fn turn_up(&mut self) {
-        self.turn(Direction::Up);
+        if self.direction != Direction::Down {
+            self.turn(Direction::Up);
+        }
     }
 
     pub fn turn_down(&mut self) {
-        self.turn(Direction::Down);
+        if self.direction != Direction::Up {
+            self.turn(Direction::Down);
+        }
     }
 
     pub fn turn_left(&mut self) {
-        self.turn(Direction::Left);
+        if self.direction != Direction::Right {
+            self.turn(Direction::Left);
+        }
     }
 
     pub fn turn_right(&mut self) {
-        self.turn(Direction::Right);
+        if self.direction != Direction::Left {
+            self.turn(Direction::Right);
+        }
+    }
+
+    pub fn out_of_bounds(&self, grid_size: i32) -> Result<bool, String> {
+        let head = self.body.back().ok_or("No body found!")?;
+        if head.0 > grid_size - 1 || head.0 < 0 || head.1 > grid_size - 1 || head.1 < 0 {
+            return Ok(true);
+        }
+        Ok(false)
     }
 
     fn turn(&mut self, direction: Direction) {
