@@ -18,7 +18,7 @@ pub struct Player {
 impl Player {
     pub fn new() -> Self {
         Self {
-            body: VecDeque::from(vec![(1, 1), (2, 1), (3, 1), (4, 1), (5, 1)]),
+            body: VecDeque::from(vec![(5, 1), (4, 1), (3, 1), (2, 1), (1, 1)]),
             direction: Direction::Right,
         }
     }
@@ -29,17 +29,17 @@ impl Player {
         })
     }
 
-    pub fn move_next_square(&mut self) -> Result<(), String> {
-        let head = self.body.back().ok_or("No body found!")?;
-        let next_square = match self.direction {
-            Direction::Up => (head.0, head.1 - 1),
-            Direction::Down => (head.0, head.1 + 1),
-            Direction::Left => (head.0 - 1, head.1),
-            Direction::Right => (head.0 + 1, head.1),
-        };
-        self.body.push_back(next_square);
-        self.body.pop_front();
-        Ok(())
+    pub fn move_next_square(&mut self) {
+        if let Some(head) = self.body.front() {
+            let next_square = match self.direction {
+                Direction::Up => (head.0, head.1 - 1),
+                Direction::Down => (head.0, head.1 + 1),
+                Direction::Left => (head.0 - 1, head.1),
+                Direction::Right => (head.0 + 1, head.1),
+            };
+            self.body.push_front(next_square);
+            self.body.pop_back();
+        }
     }
 
     pub fn turn_up(&mut self) {
@@ -66,12 +66,24 @@ impl Player {
         }
     }
 
-    pub fn out_of_bounds(&self, grid_size: i32) -> Result<bool, String> {
-        let head = self.body.back().ok_or("No body found!")?;
-        if head.0 > grid_size - 1 || head.0 < 0 || head.1 > grid_size - 1 || head.1 < 0 {
-            return Ok(true);
+    pub fn out_of_bounds(&self, grid_size: i32) -> bool {
+        if let Some(head) = self.body.front() {
+            if head.0 > grid_size - 1 || head.0 < 0 || head.1 > grid_size - 1 || head.1 < 0 {
+                return true
+            }
         }
-        Ok(false)
+        false
+    }
+
+    pub fn collides_with_self(&self) -> bool {
+        if let Some(head) = self.body.front() {
+            for point in self.body.iter().skip(1) {
+                if point.0 == head.0 && point.1 == head.1 {
+                    return true
+                }
+            }
+        }
+        false
     }
 
     fn turn(&mut self, direction: Direction) {

@@ -14,8 +14,7 @@ fn main() -> io::Result<()> {
     let mut game = game::Game::new(grid_size);
 
     let result = (|| {
-        // TODO: Fix this error type
-        game.run(&mut renderer).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        game.run(&mut renderer);
         Ok(())
     })();
 

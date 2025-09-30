@@ -30,7 +30,7 @@ impl Game {
         }
     }
 
-    pub fn run(&mut self, renderer: &mut impl Renderer) -> Result<(), String> {
+    pub fn run(&mut self, renderer: &mut impl Renderer) {
         self.running = true;
         loop {
             if !self.running {
@@ -40,8 +40,8 @@ impl Game {
             let frame_start = Instant::now();
 
             self.handle_input();
-            self.player.move_next_square()?;
-            if self.player.out_of_bounds(self.grid_size)? {
+            self.player.move_next_square();
+            if self.player.out_of_bounds(self.grid_size) || self.player.collides_with_self() {
                 break;
             }
             self.render(renderer);
@@ -51,7 +51,6 @@ impl Game {
                 sleep(FRAME_DURATION_IN_MS - elapsed);
             }
         }
-        Ok(())
     }
 
     pub fn handle_input(&mut self) {
@@ -82,4 +81,3 @@ impl Game {
         renderer.draw_text(&format!("Score: {}", self.score), 2, 2);
     }
 }
-
