@@ -69,7 +69,7 @@ impl Player {
     pub fn out_of_bounds(&self, grid_size: i32) -> bool {
         if let Some(head) = self.body.front() {
             if head.0 > grid_size - 1 || head.0 < 0 || head.1 > grid_size - 1 || head.1 < 0 {
-                return true
+                return true;
             }
         }
         false
@@ -79,11 +79,15 @@ impl Player {
         if let Some(head) = self.body.front() {
             for point in self.body.iter().skip(1) {
                 if point.0 == head.0 && point.1 == head.1 {
-                    return true
+                    return true;
                 }
             }
         }
         false
+    }
+
+    pub fn body(&self) -> &VecDeque<(i32, i32)> {
+        &self.body
     }
 
     fn turn(&mut self, direction: Direction) {

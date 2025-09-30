@@ -1,7 +1,7 @@
 use std::{
-    thread::sleep,
-    time::{Duration, Instant},
+    collections::HashSet, thread::sleep, time::{Duration, Instant}
 };
+use rand::Rng;
 
 use crate::{
     controller::{InputController, Key},
@@ -15,6 +15,7 @@ pub struct Game {
     player: Player,
     controller: InputController,
     grid_size: i32,
+    apple: Option<(i32, i32)>,
 }
 
 const FRAME_DURATION_IN_MS: Duration = Duration::from_millis(200);
@@ -27,6 +28,7 @@ impl Game {
             score: 0,
             player: Player::new(),
             controller: InputController::new(),
+            apple: None,
         }
     }
 
@@ -43,6 +45,9 @@ impl Game {
             self.player.move_next_square();
             if self.player.out_of_bounds(self.grid_size) || self.player.collides_with_self() {
                 break;
+            }
+            if self.apple.is_none() {
+                self.spawn_apple();
             }
             self.render(renderer);
 
@@ -70,14 +75,35 @@ impl Game {
         }
     }
 
+    fn spawn_apple(&mut self) {
+        let mut rng = rand::rng();
+        let occupied: HashSet<_> = self.player.body().iter().cloned().collect();
+
+        let free_cells: Vec<(i32, i32)> = (0..self.grid_size)
+            .flat_map(|x| (0..self.grid_size).map(move |y| (x, y)))
+            .filter(|pos| !occupied.contains(pos))
+            .collect();
+
+        if !free_cells.is_empty() {
+            self.apple = Some(free_cells[rng.random_range(0..free_cells.len())]);
+        }
+    }
+
     fn render(&self, renderer: &mut impl Renderer) {
         renderer.clear();
         self.player.draw(renderer);
         self.draw_score(renderer);
+        self.draw_apple(renderer);
         renderer.present();
     }
 
     fn draw_score(&self, renderer: &mut impl Renderer) {
         renderer.draw_text(&format!("Score: {}", self.score), 2, 2);
+    }
+
+    fn draw_apple(&self, renderer: &mut impl Renderer) {
+        if let Some(pos) = self.apple {
+            renderer.put_char(pos.0, pos.1, '█');
+        }
     }
 }
