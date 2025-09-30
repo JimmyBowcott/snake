@@ -46,6 +46,12 @@ impl Game {
             if self.player.out_of_bounds(self.grid_size) || self.player.collides_with_self() {
                 break;
             }
+
+            if let Some(pos) = self.apple && self.player.collides(pos.0, pos.1) {
+                self.player.eat();
+                self.apple = None;
+            }
+
             if self.apple.is_none() {
                 self.spawn_apple();
             }

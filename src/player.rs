@@ -13,6 +13,7 @@ enum Direction {
 pub struct Player {
     body: VecDeque<(i32, i32)>,
     direction: Direction,
+    has_eaten: bool,
 }
 
 impl Player {
@@ -20,6 +21,7 @@ impl Player {
         Self {
             body: VecDeque::from(vec![(5, 1), (4, 1), (3, 1), (2, 1), (1, 1)]),
             direction: Direction::Right,
+            has_eaten: false,
         }
     }
 
@@ -38,7 +40,12 @@ impl Player {
                 Direction::Right => (head.0 + 1, head.1),
             };
             self.body.push_front(next_square);
-            self.body.pop_back();
+
+            if !self.has_eaten {
+                self.body.pop_back();
+            } else {
+                self.has_eaten = false;
+            }
         }
     }
 
@@ -88,6 +95,19 @@ impl Player {
 
     pub fn body(&self) -> &VecDeque<(i32, i32)> {
         &self.body
+    }
+
+    pub fn collides(&self, x: i32, y: i32) -> bool {
+        for point in self.body.iter() {
+            if point.0 == x && point.1 == y {
+                return true
+            }
+        }
+        false
+    }
+
+    pub fn eat(&mut self) {
+        self.has_eaten = true;
     }
 
     fn turn(&mut self, direction: Direction) {
