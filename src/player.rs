@@ -28,7 +28,7 @@ impl Player {
     pub fn draw(&self, renderer: &mut impl Renderer) {
         self.body.iter().for_each(|(x, y)| {
             renderer.put_char(*x, *y, '█');
-        })
+        });
     }
 
     pub fn move_next_square(&mut self) {

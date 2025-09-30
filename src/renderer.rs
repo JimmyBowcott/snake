@@ -100,7 +100,15 @@ impl Renderer for TerminalRenderer {
         }
     }
 
-    fn draw_text(&mut self, text: &str, x: i32, y: i32) {}
+    fn draw_text(&mut self, text: &str, x: i32, y: i32) {
+        if y >= self.height { return; }
+
+        for (i, ch) in text.chars().enumerate() {
+            let px = x + i as i32;
+            if px >= self.width { break; }
+            self.screen[y as usize][px as usize] = ch;
+        }
+    }
 
     fn present(&mut self) {
         let mut stdout = stdout();

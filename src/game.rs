@@ -11,7 +11,7 @@ use crate::{
 
 pub struct Game {
     running: bool,
-    score: usize,
+    score: i32,
     player: Player,
     controller: InputController,
     grid_size: i32,
@@ -49,7 +49,8 @@ impl Game {
 
             if let Some(pos) = self.apple && self.player.collides(pos.0, pos.1) {
                 self.player.eat();
-                self.apple = None;
+                self.clear_apple();
+                self.increment_score();
             }
 
             if self.apple.is_none() {
@@ -98,8 +99,8 @@ impl Game {
     fn render(&self, renderer: &mut impl Renderer) {
         renderer.clear();
         self.player.draw(renderer);
-        self.draw_score(renderer);
         self.draw_apple(renderer);
+        self.draw_score(renderer);
         renderer.present();
     }
 
@@ -111,5 +112,13 @@ impl Game {
         if let Some(pos) = self.apple {
             renderer.put_char(pos.0, pos.1, '█');
         }
+    }
+
+    fn clear_apple(&mut self) {
+        self.apple = None;
+    }
+
+    fn increment_score(&mut self) {
+        self.score += 1;
     }
 }
